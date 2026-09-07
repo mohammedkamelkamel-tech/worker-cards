@@ -1,8 +1,7 @@
-name: Build Native APK V7
+name: Build Native APK V9
 
 on:
   workflow_dispatch:
-
   push:
     branches:
       - main
@@ -12,21 +11,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare Native V7 Project
+      - name: Find and prepare Native V9 project
         run: |
-          echo "Preparing Native Android V7 project..."
-
           rm -rf project
           mkdir project
 
-          unzip -q "ادارة_كروت_العامل_Native_Android_v7.zip" -d project
+          echo "Searching for Native Android V9 ZIP..."
 
-          echo "Project files:"
-          ls -la project
+          NATIVE_ZIP=$(find . -maxdepth 1 -type f -name '*Native*Android*v9*.zip' | head -n 1)
+
+          if [ -z "$NATIVE_ZIP" ]; then
+            echo "ERROR: Native Android V9 ZIP not found."
+            echo "Files in repository:"
+            ls -lah
+            exit 1
+          fi
+
+          echo "Found: $NATIVE_ZIP"
+
+          unzip -q "$NATIVE_ZIP" -d project
+
+          echo "Native project contents:"
+          ls -lah project
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -39,24 +48,21 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Build Native APK V7
+      - name: Build Native APK V9
         working-directory: project
         run: |
-          echo "Building Native Android APK V7..."
+          echo "Building Native Android APK V9..."
           gradle --no-daemon assembleDebug
 
       - name: Check APK
         run: |
-          echo "Checking APK..."
-
-          ls -lh project/app/build/outputs/apk/debug/
-
+          echo "Checking generated APK..."
+          ls -lah project/app/build/outputs/apk/debug/
           test -f project/app/build/outputs/apk/debug/app-debug.apk
+          echo "APK created successfully."
 
-          echo "APK created successfully!"
-
-      - name: Upload Native APK V7
+      - name: Upload Native APK V9
         uses: actions/upload-artifact@v4
         with:
-          name: إدارة-كروت-العامل-V7
+          name: worker-cards-native-v9-apk
           path: project/app/build/outputs/apk/debug/app-debug.apk
