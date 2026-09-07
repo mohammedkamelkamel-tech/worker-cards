@@ -19,6 +19,12 @@ jobs:
           mkdir project
           unzip -q *.zip -d project
 
+      - name: تحديد مجلد المشروع
+        run: |
+          PROJECT_DIR=$(dirname "$(find project -name settings.gradle -o -name settings.gradle.kts | head -n 1)")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "تم العثور على المشروع في: $PROJECT_DIR"
+
       - name: إعداد Java
         uses: actions/setup-java@v4
         with:
@@ -31,11 +37,12 @@ jobs:
           gradle-version: '8.7'
 
       - name: بناء APK
-        working-directory: project
-        run: gradle --no-daemon assembleDebug
+        run: |
+          cd "$PROJECT_DIR"
+          gradle --no-daemon assembleDebug
 
       - name: رفع APK
         uses: actions/upload-artifact@v4
         with:
           name: worker-cards-apk
-          path: project/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
