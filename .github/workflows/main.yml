@@ -1,4 +1,4 @@
-name: Build Native APK V11
+name: Build Native APK V13
 
 on:
   workflow_dispatch:
@@ -14,17 +14,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Find and prepare Native V11 project
+      - name: Find and prepare Native V13 project
         run: |
           rm -rf project
           mkdir project
 
-          echo "Searching for Native Android V11 ZIP..."
+          echo "Searching for Native Android V13 ZIP..."
 
-          NATIVE_ZIP=$(find . -maxdepth 1 -type f -name '*Native*Android*v11*.zip' | head -n 1)
+          NATIVE_ZIP=$(find . -maxdepth 1 -type f -name '*Native*Android*v13*.zip' | head -n 1)
 
           if [ -z "$NATIVE_ZIP" ]; then
-            echo "ERROR: Native Android V11 ZIP not found."
+            echo "ERROR: Native Android V13 ZIP not found."
             echo "Files in repository:"
             ls -lah
             exit 1
@@ -48,10 +48,10 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Build Native APK V11
+      - name: Build Native APK V13
         working-directory: project
         run: |
-          echo "Building Native Android APK V11..."
+          echo "Building Native Android APK V13..."
           gradle --no-daemon assembleDebug
 
       - name: Check APK
@@ -61,8 +61,8 @@ jobs:
           test -f project/app/build/outputs/apk/debug/app-debug.apk
           echo "APK created successfully."
 
-      - name: Upload Native APK V11
+      - name: Upload Native APK V13
         uses: actions/upload-artifact@v4
         with:
-          name: worker-cards-native-v11-apk
+          name: worker-cards-native-v13-apk
           path: project/app/build/outputs/apk/debug/app-debug.apk
