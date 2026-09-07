@@ -1,0 +1,41 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: تحميل الملفات
+        uses: actions/checkout@v4
+
+      - name: فك ملف المشروع
+        run: |
+          mkdir project
+          unzip -q *.zip -d project
+
+      - name: إعداد Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: إعداد Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: بناء APK
+        working-directory: project
+        run: gradle --no-daemon assembleDebug
+
+      - name: رفع APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-cards-apk
+          path: project/app/build/outputs/apk/debug/app-debug.apk
