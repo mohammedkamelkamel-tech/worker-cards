@@ -54,7 +54,7 @@ jobs:
 
           if [ ! -d "$PROJECT_DIR/app" ]; then
             echo "ERROR: app module not found."
-            find "$PROJECT_DIR" -maxdepth 4 -type f
+            find "$PROJECT_DIR" -maxdepth 5 -type f
             exit 1
           fi
 
@@ -83,7 +83,7 @@ jobs:
 
           gradle --no-daemon assembleDebug
 
-      - name: Check APK
+      - name: Prepare APK
         run: |
           PROJECT_DIR=$(cat project_dir.txt)
 
@@ -92,15 +92,23 @@ jobs:
           echo "Checking APK..."
 
           if [ ! -f "$APK" ]; then
-            echo "ERROR: APK was not created."
+            echo "ERROR: APK not found!"
             find "$PROJECT_DIR/app/build/outputs" -type f 2>/dev/null || true
             exit 1
           fi
 
-          echo "APK created successfully:"
+          echo "APK found:"
           ls -lh "$APK"
+
+          cp "$APK" ./app-debug.apk
+
+          echo "APK copied to:"
+          pwd
+          ls -lh ./app-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: مخزون-كروت-الكامل-v23
+          name: مخزون-كروت-الكامل-v23-apk
+          path: ./app-debug.apk
+          if-no-files-found: error
