@@ -25,17 +25,51 @@ jobs:
 
           if [ -z "$NATIVE_ZIP" ]; then
             echo "ERROR: V23 ZIP not found."
-            echo "Files in repository:"
             ls -lah
             exit 1
           fi
 
-          echo "Found: $NATIVE_ZIP"
+          echo "Found ZIP: $NATIVE_ZIP"
 
           unzip -q "$NATIVE_ZIP" -d project
 
-          echo "Project contents:"
-          find project -maxdepth 3 -type f | head -100
+          echo "Searching for Gradle project..."
+
+          GRADLE_FILE=$(find project -type f -name "build.gradle" | head -n 1)
+
+          if [ -z "$GRADLE_FILE" ]; then
+            echo "ERROR: build.gradle not found."
+            find project -maxdepth 5 -type f
+            exit 1
+          fi
+
+          PROJECT_DIR=$(dirname "$GRADLE_FILE")
+
+          echo "Found build.gradle:"
+          echo "$GRADLE_FILE"
+
+          echo "Project directory:"
+          echo "$PROJECT_DIR"
+
+          if [ ! -d "$PROJECT_DIR/app" ]; then
+            echo "Searching for directory containing app module..."
+
+            PROJECT_DIR=$(find project -type d -name "app" -exec dirname {} \; | head -n 1)
+          fi
+
+          if [ -z "$PROJECT_DIR" ] || [ ! -d "$PROJECT_DIR/app" ]; then
+            echo "ERROR: Android app module not found."
+            find project -maxdepth 6 -type f
+            exit 1
+          fi
+
+          echo "FINAL PROJECT DIRECTORY:"
+          echo "$PROJECT_DIR"
+
+          echo "$PROJECT_DIR" > project_dir.txt
+
+          echo "Project files:"
+          find "$PROJECT_DIR" -maxdepth 3 -type f
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -49,18 +83,42 @@ jobs:
           gradle-version: '8.7'
 
       - name: Build APK
-        working-directory: project
         run: |
+          PROJECT_DIR=$(cat project_dir.txt)
+
+          echo "Building from:"
+          echo "$PROJECT_DIR"
+
+          cd "$PROJECT_DIR"
+
+          echo "Current directory:"
+          pwd
+
+          echo "Files:"
+          ls -lah
+
           echo "Building مخزون كروت الكامل V23..."
+
           gradle --no-daemon assembleDebug
 
       - name: Check APK
         run: |
-          echo "Checking generated APK..."
+          PROJECT_DIR=$(cat project_dir.txt)
 
-          ls -lah project/app/build/outputs/apk/debug/
+          APK="$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
 
-          test -f project/app/build/outputs/apk/debug/app-debug.apk
+          echo "Checking APK:"
+          echo "$APK"
+
+          if [ ! -f "$APK" ]; then
+            echo "ERROR: APK was not created."
+
+            find "$PROJECT_DIR/app/build/outputs" -type f 2>/dev/null || true
+
+            exit 1
+          fi
+
+          ls -lh "$APK"
 
           echo "APK created successfully."
 
@@ -68,4 +126,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: مخزون-كروت-الكامل-v23-apk
-          path: project/app/build/outputs/apk/debug/app-debug.apk
+          path: "**/app/build/outputs/apk/debug/app-debug.apk"
