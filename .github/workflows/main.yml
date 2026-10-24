@@ -1,4 +1,4 @@
-name: Build مخزون كروت الكامل V23
+name: Build مخزون كروت الكامل V24
 
 on:
   workflow_dispatch:
@@ -14,43 +14,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Find and prepare V23 project
+      - name: Find and prepare V24 project
         run: |
           rm -rf project
           mkdir project
 
-          echo "Searching for V23 ZIP..."
+          NATIVE_ZIP="./worker_cards_pro_v24_source_reviewed.zip"
 
-          NATIVE_ZIP=$(find . -maxdepth 1 -type f -iname '*v23*.zip' | head -n 1)
-
-          if [ -z "$NATIVE_ZIP" ]; then
-            echo "ERROR: V23 ZIP not found."
+          if [ ! -f "$NATIVE_ZIP" ]; then
+            echo "ERROR: Modified V24 source ZIP not found: $NATIVE_ZIP"
             ls -lah
             exit 1
           fi
 
-          echo "Found: $NATIVE_ZIP"
-
+          echo "Using modified source: $NATIVE_ZIP"
           unzip -q "$NATIVE_ZIP" -d project
 
-          echo "Searching for Android project..."
-
           GRADLE_FILE=$(find project -type f -name "settings.gradle" | head -n 1)
-
           if [ -z "$GRADLE_FILE" ]; then
             GRADLE_FILE=$(find project -type f -name "settings.gradle.kts" | head -n 1)
           fi
 
           if [ -z "$GRADLE_FILE" ]; then
-            echo "ERROR: settings.gradle not found."
+            echo "ERROR: settings.gradle not found in the uploaded source archive."
             find project -maxdepth 6 -type f
             exit 1
           fi
 
           PROJECT_DIR=$(dirname "$GRADLE_FILE")
-
-          echo "Android project found:"
-          echo "$PROJECT_DIR"
+          echo "Android project found: $PROJECT_DIR"
 
           if [ ! -d "$PROJECT_DIR/app" ]; then
             echo "ERROR: app module not found."
@@ -74,41 +66,26 @@ jobs:
       - name: Build APK
         run: |
           PROJECT_DIR=$(cat project_dir.txt)
-
           cd "$PROJECT_DIR"
-
-          echo "======================================"
-          echo "Building مخزون كروت الكامل V23"
-          echo "======================================"
-
+          echo "Building modified مخزون كروت الكامل V24 source"
           gradle --no-daemon assembleDebug
 
       - name: Prepare APK
         run: |
           PROJECT_DIR=$(cat project_dir.txt)
-
           APK="$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
-
-          echo "Checking APK..."
-
           if [ ! -f "$APK" ]; then
             echo "ERROR: APK not found!"
             find "$PROJECT_DIR/app/build/outputs" -type f 2>/dev/null || true
             exit 1
           fi
-
-          echo "APK found:"
           ls -lh "$APK"
-
-          cp "$APK" ./app-debug.apk
-
-          echo "APK copied to:"
-          pwd
-          ls -lh ./app-debug.apk
+          cp "$APK" ./worker-cards-v24-debug.apk
+          ls -lh ./worker-cards-v24-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: مخزون-كروت-الكامل-v23-apk
-          path: ./app-debug.apk
+          name: worker-cards-v24-debug-apk
+          path: ./worker-cards-v24-debug.apk
           if-no-files-found: error
