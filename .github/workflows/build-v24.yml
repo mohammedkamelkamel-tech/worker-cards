@@ -1,0 +1,60 @@
+name: Build Worker Cards v24
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-v24.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Locate and unpack project archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="$(find . -type f -iname '*v23*.zip' -o -iname '*كروت*.zip' | head -n 1)"
+          if [ -z "$ZIP" ]; then
+            echo "No v23 source ZIP found in repository."
+            find . -maxdepth 3 -type f | head -100
+            exit 1
+          fi
+          mkdir -p /tmp/worker-cards-src
+          unzip -q "$ZIP" -d /tmp/worker-cards-src
+          PROJECT="$(find /tmp/worker-cards-src -name settings.gradle -o -name settings.gradle.kts | head -n 1)"
+          if [ -z "$PROJECT" ]; then
+            echo "Could not find settings.gradle in extracted archive."
+            find /tmp/worker-cards-src -maxdepth 5 -type f | head -100
+            exit 1
+          fi
+          cd "$(dirname "$PROJECT")"
+          echo "PROJECT_DIR=$PWD" >> "$GITHUB_ENV"
+      - name: Configure independent v24 application ID
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$PROJECT_DIR"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/build.gradle")
+          s=p.read_text()
+          import re
+          s=re.sub(r'applicationId\s+["\'][^"\']+["\']', 'applicationId "com.alkamel.workercards.pro24"', s, count=1)
+          s=re.sub(r'versionCode\s+\d+', 'versionCode 24', s, count=1)
+          s=re.sub(r'versionName\s+["\'][^"\']+["\']', 'versionName "24.0"', s, count=1)
+          p.write_text(s)
+          PY
+          gradle --no-daemon assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: worker-cards-v24-debug-apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
