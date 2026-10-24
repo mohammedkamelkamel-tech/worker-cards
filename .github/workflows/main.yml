@@ -50,6 +50,14 @@ jobs:
             exit 1
           fi
 
+          # Repair a missing Java statement terminator in the uploaded V24 archive.
+          BACKUP_HELPER="$PROJECT_DIR/app/src/main/java/com/example/workercards/BackupHelper.java"
+          if [ -f "$BACKUP_HELPER" ]; then
+            sed -i 's/^\([[:space:]]*private static final String PREFS = "worker_cards_pro_v24_data"\)$/\1;/' "$BACKUP_HELPER"
+            echo "Checked BackupHelper.java syntax"
+            grep -n 'PREFS = "worker_cards_pro_v24_data"' "$BACKUP_HELPER"
+          fi
+
           echo "$PROJECT_DIR" > project_dir.txt
 
       - name: Set up Java 17
