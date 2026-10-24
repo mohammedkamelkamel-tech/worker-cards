@@ -58,6 +58,20 @@ jobs:
             grep -n 'PREFS = "worker_cards_pro_v24_data"' "$BACKUP_HELPER"
           fi
 
+          AUTH_ACTIVITY="$PROJECT_DIR/app/src/main/java/com/example/workercards/AuthActivity.java"
+          if [ -f "$AUTH_ACTIVITY" ]; then
+            sed -i 's/import java\.security\.spec\.PBEKeySpec;/import javax.crypto.spec.PBEKeySpec;/' "$AUTH_ACTIVITY"
+            sed -i 's/java\.security\.spec\.PBEKeySpec/javax.crypto.spec.PBEKeySpec/g' "$AUTH_ACTIVITY"
+            if ! grep -q 'import androidx.fragment.app.FragmentActivity;' "$AUTH_ACTIVITY"; then
+              sed -i '/^package .*;/a\\
+import androidx.fragment.app.FragmentActivity;' "$AUTH_ACTIVITY"
+            fi
+            sed -i 's/class AuthActivity extends Activity/class AuthActivity extends FragmentActivity/' "$AUTH_ACTIVITY"
+            sed -i 's/class AuthActivity extends AppCompatActivity/class AuthActivity extends FragmentActivity/' "$AUTH_ACTIVITY"
+            echo "Applied AuthActivity compile compatibility fixes"
+            grep -n 'class AuthActivity\|PBEKeySpec\|FragmentActivity' "$AUTH_ACTIVITY" || true
+          fi
+
           echo "$PROJECT_DIR" > project_dir.txt
 
       - name: Set up Java 17
