@@ -44,9 +44,8 @@ jobs:
           PROJECT_DIR=$(dirname "$GRADLE_FILE")
           echo "Android project found: $PROJECT_DIR"
 
-          # Overlay the reviewed price/PDF changes into the source before compiling.
-          cp patches/app/src/main/java/com/example/workercards/MainActivity.java "$PROJECT_DIR/app/src/main/java/com/example/workercards/MainActivity.java"
-          cp patches/app/src/main/res/xml/file_paths.xml "$PROJECT_DIR/app/src/main/res/xml/file_paths.xml"
+          # Apply reviewed V24 sale-price and PDF report patches before compiling.
+          python3 patches/apply_v24_changes.py "$PROJECT_DIR"
 
           if [ ! -d "$PROJECT_DIR/app" ]; then
             echo "ERROR: app module not found."
