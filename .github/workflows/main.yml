@@ -19,7 +19,7 @@ jobs:
           rm -rf project
           mkdir project
 
-          NATIVE_ZIP="./worker_cards_pro_v24_source_reviewed.zip"
+          NATIVE_ZIP="./مشروع المخزون.zip"
 
           if [ ! -f "$NATIVE_ZIP" ]; then
             echo "ERROR: Modified V24 source ZIP not found: $NATIVE_ZIP"
