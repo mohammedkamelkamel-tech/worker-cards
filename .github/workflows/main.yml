@@ -19,7 +19,7 @@ jobs:
           rm -rf project
           mkdir project
 
-          NATIVE_ZIP="./مشروع المخزون.zip"
+          NATIVE_ZIP="./worker_cards_pro_v24_source_reviewed.zip"
 
           if [ ! -f "$NATIVE_ZIP" ]; then
             echo "ERROR: Modified V24 source ZIP not found: $NATIVE_ZIP"
@@ -43,9 +43,6 @@ jobs:
 
           PROJECT_DIR=$(dirname "$GRADLE_FILE")
           echo "Android project found: $PROJECT_DIR"
-
-          # Apply reviewed V24 sale-price and PDF report patches before compiling.
-          python3 patches/apply_v24_changes.py "$PROJECT_DIR"
 
           if [ ! -d "$PROJECT_DIR/app" ]; then
             echo "ERROR: app module not found."
