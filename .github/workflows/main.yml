@@ -19,7 +19,7 @@ jobs:
           rm -rf project
           mkdir project
 
-          NATIVE_ZIP="./worker_cards_pro_v24_source_reviewed.zip"
+          NATIVE_ZIP="./worker_cards_pro_v24_complete_source.zip"
 
           if [ ! -f "$NATIVE_ZIP" ]; then
             echo "ERROR: Modified V24 source ZIP not found: $NATIVE_ZIP"
@@ -43,6 +43,10 @@ jobs:
 
           PROJECT_DIR=$(dirname "$GRADLE_FILE")
           echo "Android project found: $PROJECT_DIR"
+
+          # Overlay the reviewed price/PDF changes into the source before compiling.
+          cp patches/app/src/main/java/com/example/workercards/MainActivity.java "$PROJECT_DIR/app/src/main/java/com/example/workercards/MainActivity.java"
+          cp patches/app/src/main/res/xml/file_paths.xml "$PROJECT_DIR/app/src/main/res/xml/file_paths.xml"
 
           if [ ! -d "$PROJECT_DIR/app" ]; then
             echo "ERROR: app module not found."
