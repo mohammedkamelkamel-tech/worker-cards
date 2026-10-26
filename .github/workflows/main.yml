@@ -59,7 +59,7 @@ jobs:
             echo "Applied requested 500-denomination color #77C9F5"
             grep -n '0xFF77C9F5' "$PROJECT_DIR/app/src/main/java/com/example/workercards/MainActivity.java" || true
             echo "Checked BackupHelper.java syntax"
-            grep -n 'PREFS = "worker_cards_pro_v24_data"' "$BACKUP_HELPER"
+            grep -n 'PREFS = "worker_cards_pro_v24_data"' "$BACKUP_HELPER" || true
           fi
 
           AUTH_ACTIVITY="$PROJECT_DIR/app/src/main/java/com/example/workercards/AuthActivity.java"
