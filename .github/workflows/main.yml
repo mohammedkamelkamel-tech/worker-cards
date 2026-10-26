@@ -19,7 +19,7 @@ jobs:
           rm -rf project
           mkdir project
 
-          NATIVE_ZIP="./worker_cards_pro_v24_source_reviewed.zip"
+          NATIVE_ZIP="./worker_cards_pro_v24_modified_source.zip"
 
           if [ ! -f "$NATIVE_ZIP" ]; then
             echo "ERROR: Modified V24 source ZIP not found: $NATIVE_ZIP"
@@ -54,6 +54,10 @@ jobs:
           BACKUP_HELPER="$PROJECT_DIR/app/src/main/java/com/example/workercards/BackupHelper.java"
           if [ -f "$BACKUP_HELPER" ]; then
             sed -i 's/^\([[:space:]]*private static final String PREFS = "worker_cards_pro_v24_data"\)$/\1;/' "$BACKUP_HELPER"
+            # Apply requested sky-blue color for denomination 500 in the PDF invoice.
+            sed -i 's/0xFF0284C7/0xFF77C9F5/g' "$PROJECT_DIR/app/src/main/java/com/example/workercards/MainActivity.java"
+            echo "Applied requested 500-denomination color #77C9F5"
+            grep -n '0xFF77C9F5' "$PROJECT_DIR/app/src/main/java/com/example/workercards/MainActivity.java" || true
             echo "Checked BackupHelper.java syntax"
             grep -n 'PREFS = "worker_cards_pro_v24_data"' "$BACKUP_HELPER"
           fi
